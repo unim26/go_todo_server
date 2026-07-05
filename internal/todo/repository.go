@@ -7,7 +7,7 @@ import (
 
 type Repository interface {
 	//create todo
-	Create(todo models.Todo) (*models.Todo, error)
+	Create(todo *models.Todo) (*models.Todo, error)
 
 	//get all todo
 	GetAll() ([]models.Todo, error)

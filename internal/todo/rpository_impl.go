@@ -8,18 +8,18 @@ import (
 	"github.com/unim26/go_todo_server/internal/models"
 )
 
-type todoDataSource struct {
+type todoRepository struct {
 	source *datasource.DataSource
 }
 
-func NewTodoDataSource(source *datasource.DataSource) *todoDataSource {
-	return &todoDataSource{source: source}
+func NewtodoRepository(source *datasource.DataSource) *todoRepository {
+	return &todoRepository{source: source}
 }
 
 // Create
-func (ds *todoDataSource) Create(todo models.Todo) (*models.Todo, error) {
-	ds.source.Mu.Lock()
-	defer ds.source.Mu.Unlock()
+func (tr *todoRepository) Create(todo models.Todo) (*models.Todo, error) {
+	tr.source.Mu.Lock()
+	defer tr.source.Mu.Unlock()
 
 	if todo.Title == "" {
 		return nil, errors.New("Title is required")
@@ -33,33 +33,33 @@ func (ds *todoDataSource) Create(todo models.Todo) (*models.Todo, error) {
 	todo.Id = newId
 	todo.IsCompleted = false
 
-	ds.source.TodoList = append(ds.source.TodoList, todo)
+	tr.source.TodoList = append(tr.source.TodoList, todo)
 
 	return &todo, nil
 
 }
 
 // get all
-func (ds *todoDataSource) GetAll() ([]models.Todo, error) {
-	ds.source.Mu.RLock()
-	defer ds.source.Mu.RUnlock()
+func (tr *todoRepository) GetAll() ([]models.Todo, error) {
+	tr.source.Mu.RLock()
+	defer tr.source.Mu.RUnlock()
 
-	return ds.source.TodoList, nil
+	return tr.source.TodoList, nil
 }
 
 // get by id
-func (ds *todoDataSource) GetById(id uuid.UUID) (*models.Todo, error) {
+func (tr *todoRepository) GetById(id uuid.UUID) (*models.Todo, error) {
 	if id.String() == "" {
 		return nil, errors.New("not a valid id")
 	}
 
-	ds.source.Mu.RLock()
-	defer ds.source.Mu.RUnlock()
+	tr.source.Mu.RLock()
+	defer tr.source.Mu.RUnlock()
 
 	var matchedTodo *models.Todo
-	for i := range ds.source.TodoList {
-		if ds.source.TodoList[i].Id == id {
-			matchedTodo = &ds.source.TodoList[i]
+	for i := range tr.source.TodoList {
+		if tr.source.TodoList[i].Id == id {
+			matchedTodo = &tr.source.TodoList[i]
 			break
 		}
 	}
@@ -72,7 +72,7 @@ func (ds *todoDataSource) GetById(id uuid.UUID) (*models.Todo, error) {
 }
 
 // update
-func (ds *todoDataSource) Update(title string, id uuid.UUID) (*models.Todo, error) {
+func (tr *todoRepository) Update(title string, id uuid.UUID) (*models.Todo, error) {
 	if title == "" {
 		return nil, errors.New("New title is required")
 	}
@@ -81,14 +81,14 @@ func (ds *todoDataSource) Update(title string, id uuid.UUID) (*models.Todo, erro
 		return nil, errors.New("Not a valid id")
 	}
 
-	ds.source.Mu.Lock()
-	defer ds.source.Mu.Unlock()
+	tr.source.Mu.Lock()
+	defer tr.source.Mu.Unlock()
 
 	var matchedTodo *models.Todo
-	for i := range ds.source.TodoList {
-		if ds.source.TodoList[i].Id == id {
-			ds.source.TodoList[i].Title = title
-			matchedTodo = &ds.source.TodoList[i]
+	for i := range tr.source.TodoList {
+		if tr.source.TodoList[i].Id == id {
+			tr.source.TodoList[i].Title = title
+			matchedTodo = &tr.source.TodoList[i]
 			break
 		}
 	}
@@ -101,18 +101,18 @@ func (ds *todoDataSource) Update(title string, id uuid.UUID) (*models.Todo, erro
 }
 
 // toggle
-func (ds *todoDataSource) toggle(id uuid.UUID) error {
+func (tr *todoRepository) toggle(id uuid.UUID) error {
 	if id.String() == "" {
 		return errors.New("Not a valid id")
 	}
 
-	ds.source.Mu.Lock()
-	defer ds.source.Mu.Unlock()
+	tr.source.Mu.Lock()
+	defer tr.source.Mu.Unlock()
 
 	found := false
-	for i := range ds.source.TodoList {
-		if ds.source.TodoList[i].Id == id {
-			ds.source.TodoList[i].IsCompleted = !ds.source.TodoList[i].IsCompleted
+	for i := range tr.source.TodoList {
+		if tr.source.TodoList[i].Id == id {
+			tr.source.TodoList[i].IsCompleted = !tr.source.TodoList[i].IsCompleted
 			found = true
 			break
 		}
@@ -127,18 +127,18 @@ func (ds *todoDataSource) toggle(id uuid.UUID) error {
 }
 
 //delete
-func (ds *todoDataSource) Delete(id uuid.UUID) error {
+func (tr *todoRepository) Delete(id uuid.UUID) error {
 	if id.String() == "" {
 		return errors.New("Not a valid id")
 	}
 
-	ds.source.Mu.Lock()
-	defer ds.source.Mu.Unlock()
+	tr.source.Mu.Lock()
+	defer tr.source.Mu.Unlock()
 
 	found := false
-	for i := range ds.source.TodoList {
-		if ds.source.TodoList[i].Id == id {
-			ds.source.TodoList = append(ds.source.TodoList[:i], ds.source.TodoList[i + 1:]... )
+	for i := range tr.source.TodoList {
+		if tr.source.TodoList[i].Id == id {
+			tr.source.TodoList = append(tr.source.TodoList[:i], tr.source.TodoList[i + 1:]... )
 			found = true
 			break
 		}
