@@ -17,7 +17,7 @@ func NewtodoRepository(source *datasource.DataSource) *todoRepository {
 }
 
 // Create
-func (tr *todoRepository) Create(todo models.Todo) (*models.Todo, error) {
+func (tr *todoRepository) Create(todo *models.Todo) (*models.Todo, error) {
 	tr.source.Mu.Lock()
 	defer tr.source.Mu.Unlock()
 
@@ -33,9 +33,9 @@ func (tr *todoRepository) Create(todo models.Todo) (*models.Todo, error) {
 	todo.Id = newId
 	todo.IsCompleted = false
 
-	tr.source.TodoList = append(tr.source.TodoList, todo)
+	tr.source.TodoList = append(tr.source.TodoList, *todo)
 
-	return &todo, nil
+	return todo, nil
 
 }
 

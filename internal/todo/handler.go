@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/google/uuid"
 	"github.com/unim26/go_todo_server/internal/models"
 	netservice "github.com/unim26/go_todo_server/internal/services/net_service"
 )
@@ -39,7 +40,7 @@ func (th *TodoHandler) HandleCreate(w http.ResponseWriter, r *http.Request) {
 
 }
 
-//handle getAll
+// handle getAll
 func (th *TodoHandler) HandleGetAll(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -55,3 +56,24 @@ func (th *TodoHandler) HandleGetAll(w http.ResponseWriter, r *http.Request) {
 	netservice.SendResponse(w, http.StatusOK, "Successfully fetched todos", fetchedTodos)
 }
 
+// get by id
+func (th *TodoHandler) GetById(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	id, err := uuid.Parse(r.PathValue("id"))
+	if err != nil {
+		http.Error(w, "Invalid id", http.StatusBadRequest)
+		return
+	}
+
+	todo, err := th.repo.GetById(id)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	netservice.SendResponse(w, http.StatusOK, "Successfully fetched todo", todo)
+}
